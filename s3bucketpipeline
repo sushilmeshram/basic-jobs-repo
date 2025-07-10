@@ -1,0 +1,44 @@
+pipeline {
+  agent any
+
+  environment {
+    AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
+    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+    AWS_DEFAULT_REGION    = 'ap-south-1'
+  }
+
+  stages {
+    stage('Checkout Terraform Code') {
+      steps {
+        git url: 'https://github.com/your-username/your-terraform-repo.git', branch: 'main'
+      }
+    }
+
+    stage('Terraform Init') {
+      steps {
+        sh 'terraform init'
+      }
+    }
+
+    stage('Terraform Plan') {
+      steps {
+        sh 'terraform plan -out=tfplan'
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        sh 'terraform apply -auto-approve tfplan'
+      }
+    }
+  }
+
+  post {
+    success {
+      echo ' S3 bucket created successfully!'
+    }
+    failure {
+      echo ' Bucket creation failed. Check logs for details.'
+    }
+  }
+}
